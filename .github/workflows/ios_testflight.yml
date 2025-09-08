@@ -2,7 +2,7 @@ name: Build & Upload iOS to TestFlight
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main ]  # Trigger on push to main
 
 jobs:
   build:
@@ -16,21 +16,21 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.3' # match your project
+          flutter-version: '3.35.3' # Match your project Flutter version
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Import code-signing certificate
+      - name: Import code-signing certificate (.p12)
         uses: apple-actions/import-codesign-certs@v3
         with:
           p12-file-base64: ${{ secrets.APPSTORE_P12_BASE64 }}
           p12-password: ${{ secrets.APPSTORE_P12_PASSWORD }}
 
       - name: Install provisioning profile
-        uses: apple-actions/import-provisioning-profile@v1
-        with:
-          profile-base64: ${{ secrets.APPSTORE_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "${{ secrets.APPSTORE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/$(uuidgen).mobileprovision
 
       - name: Build signed iOS IPA
         run: flutter build ipa --release
