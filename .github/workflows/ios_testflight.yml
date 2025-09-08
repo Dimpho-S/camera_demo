@@ -1,0 +1,34 @@
+name: Build & Upload iOS to TestFlight
+
+on:
+  push:
+    branches: [ main ]  # Trigger on push to main
+
+jobs:
+  build:
+    name: Build iOS App
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.13.0' # use your Flutter version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS IPA
+        run: flutter build ios --release --no-codesign
+
+      - name: Upload to TestFlight
+        uses: apple-actions/app-store-connect@v2
+        with:
+          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+          api-issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          app-path: build/ios/ipa/Runner.ipa
+          skip-deploy-to-app-store: false
