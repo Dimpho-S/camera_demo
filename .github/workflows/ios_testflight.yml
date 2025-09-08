@@ -11,24 +11,40 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.13.0' # use your Flutter version
+          flutter-version: '3.13.0' # Use your Flutter version
 
       - name: Install dependencies
         run: flutter pub get
 
+      # Optional: import signing certificate (.p12)
+      # Uncomment if you want to use your p12 certificate
+      # - name: Import code-signing certificates
+      #   uses: apple-actions/import-codesign-certs@v3
+      #   with:
+      #     p12-file-base64: ${{ secrets.APPSTORE_P12_BASE64 }}
+      #     p12-password: ${{ secrets.APPSTORE_P12_PASSWORD }}
+
+      - name: Install provisioning profiles
+        uses: apple-actions/download-provisioning-profiles@v4
+        with:
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          bundle-id: com.dimpho.camerademo
+          profile-type: IOS_APP_STORE
+
       - name: Build iOS IPA
-        run: flutter build ios --release --no-codesign
+        run: flutter build ipa --release --no-codesign
 
       - name: Upload to TestFlight
-        uses: apple-actions/app-store-connect@v2
+        uses: apple-actions/upload-testflight-build@v3
         with:
+          app-path: build/ios/ipa/*.ipa
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
-          api-issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
-          app-path: build/ios/ipa/Runner.ipa
-          skip-deploy-to-app-store: false
