@@ -2,7 +2,7 @@ name: Build & Upload iOS to TestFlight
 
 on:
   push:
-    branches: [ main ]  # Trigger on push to main
+    branches: [ main ]
 
 jobs:
   build:
@@ -16,30 +16,24 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.3' # Use your Flutter version
+          flutter-version: '3.35.3' # match your project
 
       - name: Install dependencies
         run: flutter pub get
 
-      # Optional: import signing certificate (.p12)
-      # Uncomment if you want to use your p12 certificate
-      # - name: Import code-signing certificates
-      #   uses: apple-actions/import-codesign-certs@v3
-      #   with:
-      #     p12-file-base64: ${{ secrets.APPSTORE_P12_BASE64 }}
-      #     p12-password: ${{ secrets.APPSTORE_P12_PASSWORD }}
-
-      - name: Install provisioning profiles
-        uses: apple-actions/download-provisioning-profiles@v4
+      - name: Import code-signing certificate
+        uses: apple-actions/import-codesign-certs@v3
         with:
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
-          bundle-id: com.dimpho.cameraDemo
-          profile-type: IOS_APP_STORE
+          p12-file-base64: ${{ secrets.APPSTORE_P12_BASE64 }}
+          p12-password: ${{ secrets.APPSTORE_P12_PASSWORD }}
 
-      - name: Build iOS IPA
-        run: flutter build ipa --release --no-codesign
+      - name: Install provisioning profile
+        uses: apple-actions/import-provisioning-profile@v1
+        with:
+          profile-base64: ${{ secrets.APPSTORE_PROVISIONING_PROFILE_BASE64 }}
+
+      - name: Build signed iOS IPA
+        run: flutter build ipa --release
 
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v3
