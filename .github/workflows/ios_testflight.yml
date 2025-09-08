@@ -16,29 +16,25 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.3' # Match your project Flutter version
+          flutter-version: '3.35.3'  # Match your project
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Import code-signing certificate (.p12)
-        uses: apple-actions/import-codesign-certs@v3
-        with:
-          p12-file-base64: ${{ secrets.APPSTORE_P12_BASE64 }}
-          p12-password: ${{ secrets.APPSTORE_P12_PASSWORD }}
+      - name: Build unsigned iOS IPA
+        run: flutter build ipa --release --no-codesign
 
-      - name: Install provisioning profile
+      - name: Locate and move IPA to known path
         run: |
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "${{ secrets.APPSTORE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/$(uuidgen).mobileprovision
-
-      - name: Build signed iOS IPA
-        run: flutter build ipa --release
+          echo "Listing IPA files:"
+          ls -R build/ios/ipa
+          mkdir -p build/ios/ipa/final
+          mv build/ios/ipa/*.ipa build/ios/ipa/final/Runner.ipa
 
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v3
         with:
-          app-path: build/ios/ipa/*.ipa
+          app-path: build/ios/ipa/final/Runner.ipa
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
