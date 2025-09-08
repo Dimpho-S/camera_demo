@@ -16,25 +16,23 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.3'  # Match your project
+          flutter-version: '3.35.3'  # Match your project version
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build unsigned iOS IPA
-        run: flutter build ipa --release --no-codesign
+      - name: Build unsigned iOS IPA for TestFlight
+        run: flutter build ipa --release --no-codesign --export-method app-store
 
-      - name: Locate and move IPA to known path
+      - name: Verify IPA exists
         run: |
           echo "Listing IPA files:"
           ls -R build/ios/ipa
-          mkdir -p build/ios/ipa/final
-          mv build/ios/ipa/*.ipa build/ios/ipa/final/Runner.ipa
 
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v3
         with:
-          app-path: build/ios/ipa/final/Runner.ipa
+          app-path: build/ios/ipa/*.ipa
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
