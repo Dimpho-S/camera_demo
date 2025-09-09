@@ -10,7 +10,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      # Checkout code
+      # Checkout repo
       - name: Checkout repo
         uses: actions/checkout@v4
 
@@ -18,20 +18,22 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.3'  # Match your Flutter version
+          flutter-version: '3.35.3'  # Match your project version
 
       # Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # Build Xcode archive
+      # Archive iOS app with development team
       - name: Archive iOS app
         run: |
           flutter build ios --release --no-codesign
           xcodebuild -workspace ios/Runner.xcworkspace \
                      -scheme Runner \
                      -configuration Release \
-                     -archivePath build/ios/archive/Runner.xcarchive archive
+                     -archivePath build/ios/archive/Runner.xcarchive \
+                     DEVELOPMENT_TEAM=${{ secrets.APPSTORE_TEAM_ID }} \
+                     archive
 
       # Export IPA from archive
       - name: Export IPA
@@ -42,7 +44,7 @@ jobs:
                      -exportOptionsPlist ios/ExportOptions.plist \
                      -exportPath build/ios/ipa
 
-      # Verify IPA exists
+      #  Verify IPA exists
       - name: Verify IPA
         run: ls -R build/ios/ipa
 
