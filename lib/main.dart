@@ -10,10 +10,14 @@ Future<void> main() async {
 
 class CameraApp extends StatefulWidget {
   final List<CameraDescription> cameras;
-  const CameraApp({Key? key, required this.cameras}) : super(key: key);
+
+  const CameraApp({super.key, required this.cameras});
+
   @override
+  // ignore: library_private_types_in_public_api
   _CameraAppState createState() => _CameraAppState();
 }
+
 
 class _CameraAppState extends State<CameraApp> {
   CameraController? _controller;
