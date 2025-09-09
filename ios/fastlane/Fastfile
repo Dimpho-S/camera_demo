@@ -8,7 +8,7 @@ platform :ios do
       type: "appstore",                  # App Store distribution
       readonly: false,                   # Set false to allow creating/updating profiles
       git_url: ENV["MATCH_GIT_URL"],     # Private GitHub certs repo
-      branch: ENV["MATCH_GIT_BRANCH"],   # e.g., "main"
+      git_branch: ENV["MATCH_GIT_BRANCH"],   # e.g., "main"
       app_identifier: "com.dimpho.cameraDemo",
       username: ENV["APPSTORE_TEAM_ID"], # Team ID or Apple ID email (Fastlane uses for context)
       git_basic_authorization: ENV["CERTS_REPO_PAT"]
