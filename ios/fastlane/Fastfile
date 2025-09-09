@@ -3,6 +3,13 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload cameraDemo app to TestFlight"
   lane :beta do
+
+    # API key from JSON
+    api_key = app_store_connect_api_key(
+      key_content: ENV["APP_STORE_JSON_KEY"], # JSON string from secret
+      in_house: false
+    )
+
     # Fetch certificates & provisioning profiles from your private repo
     match(
       type: "appstore",                  # App Store distribution
@@ -11,12 +18,7 @@ platform :ios do
       git_branch: ENV["MATCH_GIT_BRANCH"],   # e.g., "main"
       app_identifier: "com.dimpho.cameraDemo",
       username: ENV["APPSTORE_TEAM_ID"], # Team ID or Apple ID email (Fastlane uses for context)
-      api_key: app_store_connect_api_key(
-        key_content: ENV["APPSTORE_API_PRIVATE_KEY"], # the full JSON as a string
-        key_id: ENV["APPSTORE_API_KEY_ID"],
-        issuer_id: ENV["APPSTORE_ISSUER_ID"],
-        in_house: false
-      ),
+      api_key: api_key,
       git_basic_authorization: ENV["CERTS_REPO_PAT"]
     )
 
@@ -33,11 +35,7 @@ platform :ios do
     upload_to_testflight(
       skip_waiting_for_build_processing: true,
       app_identifier: "com.dimpho.cameraDemo",
-      api_key: app_store_connect_api_key(
-        key_content: ENV["APP_STORE_JSON_KEY"], # the full JSON as a string
-        key_id: ENV["APPSTORE_API_KEY_ID"],
-        issuer_id: ENV["APPSTORE_ISSUER_ID"]
-      )
+      api_key: api_key
     )
   end
 end
