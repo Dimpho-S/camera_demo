@@ -13,32 +13,22 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Setup Ruby
+      - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.3
 
-      - name: Install Bundler & Fastlane
-        run: |
-          gem install bundler
-          bundle install || true
-          gem install fastlane
+      - name: Install Fastlane
+        run: gem install fastlane
 
-      - name: Save App Store Connect Key
-        run: |
-          echo "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" > ./AppStoreConnectKey.p8
-
-      - name: Set environment variables
+      - name: Run Fastlane beta lane
         env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
           MATCH_GIT_BRANCH: ${{ secrets.MATCH_GIT_BRANCH }}
           CERTS_REPO_PAT: ${{ secrets.CERTS_REPO_PAT }}
           APPSTORE_TEAM_ID: ${{ secrets.APPSTORE_TEAM_ID }}
           APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
           APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-        run: echo "Environment variables set"
-
-      - name: Run Fastlane beta lane
-        run: bundle exec fastlane ios beta
-          
+        run: fastlane ios beta

@@ -3,15 +3,16 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload cameraDemo app to TestFlight"
   lane :beta do
-    # Fetch certificates & provisioning profiles from your private repo
+    # Use match in readonly mode with your private git repo
     match(
       type: "appstore",
-      readonly: true,                     # avoids needing Apple ID/password
-      git_url: ENV["MATCH_GIT_URL"],      
+      readonly: true,
+      git_url: ENV["MATCH_GIT_URL"],
       git_branch: ENV["MATCH_GIT_BRANCH"],
       app_identifier: "com.dimpho.cameraDemo",
+      username: ENV["APPSTORE_TEAM_ID"],
       git_basic_authorization: ENV["CERTS_REPO_PAT"],
-      username: ENV["APPSTORE_TEAM_ID"]
+      password: ENV["MATCH_PASSWORD"]
     )
 
     # Build the IPA
@@ -23,14 +24,15 @@ platform :ios do
       output_directory: "build/ios/ipa"
     )
 
-    # Upload to TestFlight
+    # Upload to TestFlight using .p8 API key
     upload_to_testflight(
       skip_waiting_for_build_processing: true,
       app_identifier: "com.dimpho.cameraDemo",
       api_key: app_store_connect_api_key(
         key_id: ENV["APPSTORE_API_KEY_ID"],
         issuer_id: ENV["APPSTORE_ISSUER_ID"],
-        key_filepath: "C:/Users/Dimpho/AuthKey_RMURKB947M.p8"
+        key_content: ENV["APPSTORE_API_PRIVATE_KEY"],
+        in_house: false
       )
     )
   end
