@@ -2,57 +2,39 @@ name: Build & Upload iOS to TestFlight
 
 on:
   push:
-    branches: [ main ]  # Trigger on push to main
+    branches:
+      - main
 
 jobs:
   build:
-    name: Build iOS App
+    name: iOS Build & TestFlight
     runs-on: macos-latest
 
+    env:
+      MATCH_GIT_URL: https://Dimpho-S:${{ secrets.CERTS_REPO_PAT }}@github.com/Dimpho-S/cameraDemo_certs.git
+      MATCH_GIT_BRANCH: ${{ secrets.MATCH_GIT_BRANCH }}
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      APPSTORE_TEAM_ID: ${{ secrets.APPSTORE_TEAM_ID }}
+      APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+      APPSTORE_API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+      APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+
     steps:
-      # Checkout repo
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Set up Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.3'  # Match your project version
+          flutter-version: "3.35.3"
 
-      # Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # Archive iOS app with development team
-      - name: Archive iOS app
+      - name: Install Fastlane
+        run: sudo gem install fastlane -NV
+
+      - name: Build and upload to TestFlight
         run: |
-          flutter build ios --release --no-codesign
-          xcodebuild -workspace ios/Runner.xcworkspace \
-                     -scheme Runner \
-                     -configuration Release \
-                     -archivePath build/ios/archive/Runner.xcarchive \
-                     DEVELOPMENT_TEAM=${{ secrets.APPSTORE_TEAM_ID }} \
-                     archive
-
-      # Export IPA from archive
-      - name: Export IPA
-        run: |
-          mkdir -p build/ios/ipa
-          xcodebuild -exportArchive \
-                     -archivePath build/ios/archive/Runner.xcarchive \
-                     -exportOptionsPlist ios/ExportOptions.plist \
-                     -exportPath build/ios/ipa
-
-      #  Verify IPA exists
-      - name: Verify IPA
-        run: ls -R build/ios/ipa
-
-      # Upload to TestFlight
-      - name: Upload to TestFlight
-        uses: apple-actions/upload-testflight-build@v3
-        with:
-          app-path: build/ios/ipa/*.ipa
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          cd ios
+          fastlane beta
