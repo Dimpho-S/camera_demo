@@ -15,9 +15,7 @@ jobs:
       MATCH_GIT_BRANCH: ${{ secrets.MATCH_GIT_BRANCH }}
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
       APPSTORE_TEAM_ID: ${{ secrets.APPSTORE_TEAM_ID }}
-      APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
-      APPSTORE_API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
-      APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+      APP_STORE_JSON_KEY: ${{ secrets.APP_STORE_JSON_KEY }}
 
     steps:
       - name: Checkout repository
