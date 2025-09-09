@@ -1,4 +1,4 @@
-name: Build & Upload iOS to TestFlight
+name: iOS TestFlight
 
 on:
   push:
@@ -7,32 +7,38 @@ on:
 
 jobs:
   build:
-    name: iOS Build & TestFlight
     runs-on: macos-latest
 
-    env:
-      MATCH_GIT_URL: https://Dimpho-S:${{ secrets.CERTS_REPO_PAT }}@github.com/Dimpho-S/cameraDemo_certs.git
-      MATCH_GIT_BRANCH: ${{ secrets.MATCH_GIT_BRANCH }}
-      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-      APPSTORE_TEAM_ID: ${{ secrets.APPSTORE_TEAM_ID }}
-      APP_STORE_JSON_KEY: ${{ secrets.APP_STORE_JSON_KEY }}
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
         with:
-          flutter-version: "3.35.3"
+          ruby-version: 3.3
 
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Install Fastlane
-        run: sudo gem install fastlane -NV
-
-      - name: Build and upload to TestFlight
+      - name: Install Bundler & Fastlane
         run: |
-          cd ios
-          fastlane beta
+          gem install bundler
+          bundle install || true
+          gem install fastlane
+
+      - name: Save App Store Connect Key
+        run: |
+          echo "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" > ./AppStoreConnectKey.p8
+
+      - name: Set environment variables
+        env:
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_GIT_BRANCH: ${{ secrets.MATCH_GIT_BRANCH }}
+          CERTS_REPO_PAT: ${{ secrets.CERTS_REPO_PAT }}
+          APPSTORE_TEAM_ID: ${{ secrets.APPSTORE_TEAM_ID }}
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        run: echo "Environment variables set"
+
+      - name: Run Fastlane beta lane
+        run: bundle exec fastlane ios beta
+          
