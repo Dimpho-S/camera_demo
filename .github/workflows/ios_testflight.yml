@@ -10,25 +10,43 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      # Checkout code
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # Set up Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.3'  # Match your project version
+          flutter-version: '3.35.3'  # Match your Flutter version
 
+      # Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build unsigned iOS IPA for TestFlight
-        run: flutter build ipa --release --no-codesign --export-method app-store
-
-      - name: Verify IPA exists
+      # Build Xcode archive
+      - name: Archive iOS app
         run: |
-          echo "Listing IPA files:"
-          ls -R build/ios/ipa
+          flutter build ios --release --no-codesign
+          xcodebuild -workspace ios/Runner.xcworkspace \
+                     -scheme Runner \
+                     -configuration Release \
+                     -archivePath build/ios/archive/Runner.xcarchive archive
 
+      # Export IPA from archive
+      - name: Export IPA
+        run: |
+          mkdir -p build/ios/ipa
+          xcodebuild -exportArchive \
+                     -archivePath build/ios/archive/Runner.xcarchive \
+                     -exportOptionsPlist ios/ExportOptions.plist \
+                     -exportPath build/ios/ipa
+
+      # Verify IPA exists
+      - name: Verify IPA
+        run: ls -R build/ios/ipa
+
+      # Upload to TestFlight
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v3
         with:
