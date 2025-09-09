@@ -3,19 +3,18 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload cameraDemo app to TestFlight"
   lane :beta do
-    # Fetch certs & provisioning profiles from your private repo
+    # Fetch certificates & provisioning profiles from your private repo
     match(
-      type: "appstore",
-      readonly: true, # optional, set true if profiles already exist
-      git_url: ENV["MATCH_GIT_URL"],
-      git_branch: ENV["MATCH_GIT_BRANCH"],
-      git_basic_authorization: ENV["CERTS_REPO_PAT"],
+      type: "appstore",                  # App Store distribution
+      readonly: true,                   # Set false to allow creating/updating profiles
+      git_url: ENV["MATCH_GIT_URL"],     # Private GitHub certs repo
+      git_branch: ENV["MATCH_GIT_BRANCH"],   # e.g., "main"
       app_identifier: "com.dimpho.cameraDemo",
-      api_key: app_store_connect_api_key(
-        json_key: ENV["APP_STORE_JSON_KEY"]
-      )
+      username: ENV["APPSTORE_TEAM_ID"], # Team ID or Apple ID email (Fastlane uses for context)
+      git_basic_authorization: ENV["CERTS_REPO_PAT"]
     )
 
+    # Build the IPA
     build_app(
       scheme: "Runner",
       export_method: "app-store",
@@ -24,6 +23,7 @@ platform :ios do
       output_directory: "build/ios/ipa"
     )
 
+    # Upload to TestFlight
     upload_to_testflight(
       skip_waiting_for_build_processing: true,
       app_identifier: "com.dimpho.cameraDemo",
