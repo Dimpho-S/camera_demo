@@ -1,6 +1,7 @@
 require 'tempfile'
 
 lane :beta do
+  
   # Write .p8 key to temp file
   file = Tempfile.new(['asc', '.p8'])
   file.write(ENV["APPSTORE_API_PRIVATE_KEY"])
