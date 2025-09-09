@@ -3,16 +3,21 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload cameraDemo app to TestFlight"
   lane :beta do
-    # Use match in readonly mode with your private git repo
+    # Fetch certificates & provisioning profiles from your private repo
     match(
-      type: "appstore",
-      readonly: true,
-      git_url: ENV["MATCH_GIT_URL"],
-      git_branch: ENV["MATCH_GIT_BRANCH"],
+      type: "appstore",                  # App Store distribution
+      readonly: true,                   # Set false to allow creating/updating profiles
+      git_url: ENV["MATCH_GIT_URL"],     # Private GitHub certs repo
+      git_branch: ENV["MATCH_GIT_BRANCH"],   # e.g., "main"
       app_identifier: "com.dimpho.cameraDemo",
-      username: ENV["APPSTORE_TEAM_ID"],
-      git_basic_authorization: ENV["CERTS_REPO_PAT"],
-      password: ENV["MATCH_PASSWORD"]
+      username: ENV["APPSTORE_TEAM_ID"], # Team ID or Apple ID email (Fastlane uses for context)
+      api_key: app_store_connect_api_key(
+        key_content: ENV["APPSTORE_API_PRIVATE_KEY"], # the full JSON as a string
+        key_id: ENV["APPSTORE_API_KEY_ID"],
+        issuer_id: ENV["APPSTORE_ISSUER_ID"],
+        in_house: false
+      ),
+      git_basic_authorization: ENV["CERTS_REPO_PAT"]
     )
 
     # Build the IPA
@@ -24,15 +29,14 @@ platform :ios do
       output_directory: "build/ios/ipa"
     )
 
-    # Upload to TestFlight using .p8 API key
+    # Upload to TestFlight
     upload_to_testflight(
       skip_waiting_for_build_processing: true,
       app_identifier: "com.dimpho.cameraDemo",
       api_key: app_store_connect_api_key(
+        key_content: ENV["APP_STORE_JSON_KEY"], # the full JSON as a string
         key_id: ENV["APPSTORE_API_KEY_ID"],
-        issuer_id: ENV["APPSTORE_ISSUER_ID"],
-        key_content: ENV["APPSTORE_API_PRIVATE_KEY"],
-        in_house: false
+        issuer_id: ENV["APPSTORE_ISSUER_ID"]
       )
     )
   end

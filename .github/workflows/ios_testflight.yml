@@ -1,4 +1,4 @@
-name: iOS TestFlight
+name: Build & Upload iOS to TestFlight
 
 on:
   push:
@@ -7,28 +7,32 @@ on:
 
 jobs:
   build:
+    name: iOS Build & TestFlight
     runs-on: macos-latest
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+    env:
+      MATCH_GIT_URL: https://Dimpho-S:${{ secrets.CERTS_REPO_PAT }}@github.com/Dimpho-S/cameraDemo_certs.git
+      MATCH_GIT_BRANCH: ${{ secrets.MATCH_GIT_BRANCH }}
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      APPSTORE_TEAM_ID: ${{ secrets.APPSTORE_TEAM_ID }}
+      APP_STORE_JSON_KEY: ${{ secrets.APP_STORE_JSON_KEY }}
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          ruby-version: 3.3
+          flutter-version: "3.35.3"
+
+      - name: Install dependencies
+        run: flutter pub get
 
       - name: Install Fastlane
-        run: gem install fastlane
+        run: sudo gem install fastlane -NV
 
-      - name: Run Fastlane beta lane
-        env:
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-          MATCH_GIT_BRANCH: ${{ secrets.MATCH_GIT_BRANCH }}
-          CERTS_REPO_PAT: ${{ secrets.CERTS_REPO_PAT }}
-          APPSTORE_TEAM_ID: ${{ secrets.APPSTORE_TEAM_ID }}
-          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
-          APPSTORE_API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
-          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-        run: fastlane ios beta
+      - name: Build and upload to TestFlight
+        run: |
+          cd ios
+          fastlane beta
