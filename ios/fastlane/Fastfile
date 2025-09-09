@@ -40,5 +40,4 @@ lane :beta do
       app_identifier: "com.dimpho.cameraDemo",
       api_key: api_key
     )
-  end
 end
